@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0a0d09" />
+  <title>VATS da DESGRAÇA</title>
+  <style>
+    :root{
+      --bg:#090a09;--panel:#111412;--panel2:#161b17;--line:#263127;--line2:#37503a;
+      --text:#edf3ee;--muted:#9eaba0;--green:#92f08f;--green2:#5cbf60;--green3:#29432b;
+      --red:#d1646c;--yellow:#d2b95c;--shadow:0 10px 30px rgba(0,0,0,.25);--radius:12px;
+    }
+    *{box-sizing:border-box}
+    html{color-scheme:dark}
+    body{margin:0;background:radial-gradient(circle at top,#0d120d 0,#090a09 60%);color:var(--text);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif}
+    button,input,select{font:inherit}
+    button{border:1px solid var(--line2);background:#192018;color:var(--text);border-radius:8px;padding:8px 10px;cursor:pointer}
+    button:hover{background:#202922} button:disabled{opacity:.45;cursor:not-allowed}
+    button.primary{background:#213726;border-color:#3f6948} button.primary:hover{background:#28422f}
+    button.good{background:#193220;border-color:#356744} button.warn{background:#3a3420;border-color:#7a6d32}
+    button.danger{background:#321a1e;border-color:#73414b}
+    input,select{width:100%;background:#0d110d;color:var(--text);border:1px solid var(--line2);border-radius:8px;padding:8px}
+    label{display:grid;gap:5px;color:var(--muted);font-size:12px}
+    .app{max-width:1360px;margin:auto;padding:18px}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap}
+    h1{font-size:22px;margin:0;letter-spacing:.02em} h2{font-size:16px;margin:0 0 12px} h3{font-size:14px;margin:0}
+    .sub{color:var(--muted);font-size:12px}.top-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .panel{background:linear-gradient(180deg,#121512 0,#101310 100%);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+    .grid{display:grid;gap:12px}.config{grid-template-columns:2fr repeat(5,1fr)}
+    .layout{display:grid;grid-template-columns:1.6fr 1fr;gap:12px;margin-top:12px}
+    .section{margin-top:12px}.section-title{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+    .body-grid,.kagune-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .region{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px;min-width:0;scroll-margin-top:14px}
+    .region.critical{border-color:var(--red);box-shadow:inset 0 0 0 1px rgba(209,100,108,.2)}
+    .region.focused{border-color:var(--green2);box-shadow:0 0 0 1px rgba(146,240,143,.18), inset 0 0 0 1px rgba(146,240,143,.18)}
+    .region-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+    .hp-num{font-variant-numeric:tabular-nums;font-weight:700}.muted{color:var(--muted)}
+    .bar{height:7px;background:#0b0d0b;border:1px solid #223025;border-radius:999px;overflow:hidden;margin:6px 0 10px}
+    .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--green2),var(--green));width:100%;transition:width .15s ease}
+    .bar > i.mid{background:linear-gradient(90deg,#94824b,var(--yellow))}.bar > i.low{background:linear-gradient(90deg,#9b434d,var(--red))}
+    .quick{display:grid;grid-template-columns:72px 1fr 1fr;gap:6px;margin-top:8px}
+    .smallrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.smallrow button{padding:6px 8px;font-size:12px}
+    .state-add{display:grid;grid-template-columns:1fr auto;gap:6px;margin-top:9px}.tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+    .tag{display:inline-flex;gap:6px;align-items:center;border:1px solid #2c3d2f;background:#0e110f;padding:4px 7px;border-radius:999px;font-size:11px}.tag button{padding:0;border:0;background:transparent;color:#aaa}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.stat{padding:10px;background:#0d100d;border:1px solid var(--line);border-radius:9px}.stat b{display:block;font-size:18px}.stat span{font-size:11px;color:var(--muted)}
+    .perk-list{display:grid;gap:8px}.perk{display:flex;align-items:flex-start;gap:8px;padding:9px;border:1px solid var(--line);background:#101310;border-radius:9px}.perk input[type=checkbox]{width:auto;margin-top:3px}.perk .grow{flex:1}.perk small{color:var(--muted)}
+    .inline-select{display:grid;grid-template-columns:1fr 90px;gap:6px;margin-top:6px}
+    .callout{border-left:3px solid var(--green2);background:#0d100d;padding:9px 10px;border-radius:0 8px 8px 0;margin:8px 0;color:#cfd7cf;font-size:12px}
+    .healer{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:12px;border:1px solid #304130;background:#111611;border-radius:10px;margin-bottom:10px}.healer strong{font-size:16px}.healer small{display:block;color:var(--muted)}
+    .kakuhou-ok{color:var(--green)}.kakuhou-bad{color:#ff7f8a;font-weight:700}
+    .history{max-height:260px;overflow:auto;padding-right:4px}.log{border-bottom:1px solid #202720;padding:7px 0;font-size:12px}.log time{color:var(--muted);margin-right:6px}
+    details{border:1px solid var(--line);border-radius:9px;background:#101310;padding:8px 10px} details+details{margin-top:6px} summary{cursor:pointer;font-weight:650}
+    .reference{display:grid;gap:5px;margin-top:8px}.reference div{padding:6px 0;border-top:1px solid #202720}.reference b{display:block}.reference span{color:var(--muted);font-size:12px}
+    .toolbar{display:flex;gap:6px;flex-wrap:wrap}.pill{padding:4px 7px;border-radius:999px;background:#182018;font-size:11px;color:#cfdbd0;border:1px solid #2a352b}.red{color:#ff8c95}.green{color:#8ce48b}
+    .full{grid-column:1/-1}.hide{display:none!important}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}.modal.open{display:flex}.modal-card{max-width:760px;width:100%;max-height:85vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+
+    .vats-panel{display:grid;grid-template-columns:1.25fr .95fr;gap:12px;align-items:stretch}
+    .vats-card{background:linear-gradient(180deg,#0d120d 0,#101510 100%);border:1px solid #223124;border-radius:12px;padding:12px;position:relative;overflow:hidden}
+    .vats-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at center,rgba(146,240,143,.08),transparent 60%);pointer-events:none}
+    .vats-title{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.vats-title b{letter-spacing:.06em}
+    .vats-stage{position:relative;min-height:420px;border:1px solid #1e2b1f;border-radius:12px;background:linear-gradient(180deg,#0b0f0b 0,#111611 100%);padding:12px;overflow:hidden}
+    .vats-gridline{position:absolute;inset:0;background-image:linear-gradient(to right,rgba(146,240,143,.04) 1px,transparent 1px),linear-gradient(to bottom,rgba(146,240,143,.04) 1px,transparent 1px);background-size:24px 24px;pointer-events:none}
+    .scanline{position:absolute;inset:0;background:linear-gradient(180deg,transparent,rgba(255,255,255,.02),transparent);pointer-events:none}
+    .figure{position:absolute;left:50%;top:50%;transform:translate(-50%,-46%);width:150px;height:290px;filter:drop-shadow(0 0 12px rgba(146,240,143,.12))}
+    .part{position:absolute;background:rgba(146,240,143,.14);border:2px solid rgba(146,240,143,.45);box-shadow:0 0 12px rgba(146,240,143,.08) inset;border-radius:14px;cursor:pointer;transition:.15s ease}
+    .part:hover{border-color:rgba(146,240,143,.8);background:rgba(146,240,143,.22)}
+    .part.active{border-color:var(--green);background:rgba(146,240,143,.28);box-shadow:0 0 0 2px rgba(146,240,143,.1),0 0 18px rgba(146,240,143,.14) inset}
+    .part.low{border-color:rgba(209,100,108,.75);background:rgba(209,100,108,.18)}
+    .part.mid{border-color:rgba(210,185,92,.75);background:rgba(210,185,92,.18)}
+    .part.head{left:50px;top:0;width:50px;height:58px;border-radius:50%}
+    .part.torso{left:36px;top:62px;width:78px;height:92px;border-radius:26px 26px 20px 20px}
+    .part.armL{left:6px;top:66px;width:26px;height:104px;border-radius:14px}
+    .part.armR{right:6px;top:66px;width:26px;height:104px;border-radius:14px}
+    .part.legL{left:42px;top:160px;width:26px;height:118px;border-radius:14px}
+    .part.legR{right:42px;top:160px;width:26px;height:118px;border-radius:14px}
+    .connector{position:absolute;height:1px;background:linear-gradient(90deg,rgba(146,240,143,.65),rgba(146,240,143,.25));transform-origin:left center}
+    .vats-tag{position:absolute;width:140px;background:rgba(8,12,8,.92);border:1px solid #2e4730;border-radius:10px;padding:8px;cursor:pointer;transition:.15s ease}
+    .vats-tag:hover{border-color:#4d7c52;background:#0f150f}.vats-tag.active{border-color:var(--green);box-shadow:0 0 0 1px rgba(146,240,143,.16)}
+    .vats-tag b{display:block;font-size:12px;line-height:1.2}.vats-tag .pct{font-size:18px;font-weight:800;letter-spacing:.02em}.vats-tag .mini{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}.vats-tag .state{font-size:10px;color:#d7ddd8;opacity:.86;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .vats-tag .bar{height:6px;margin:5px 0 6px}
+    .tag-head{display:flex;justify-content:space-between;gap:6px;align-items:center}
+    .vats-tag.head{left:16px;top:16px}.vats-tag.torso{right:16px;top:84px}.vats-tag.armL{left:16px;top:164px}.vats-tag.armR{right:16px;top:176px}.vats-tag.legL{left:16px;bottom:20px}.vats-tag.legR{right:16px;bottom:20px}
+    .vats-summary{display:grid;gap:10px}.vats-summary .stats{margin:0}.region-actions{display:grid;grid-template-columns:86px 1fr 1fr 1fr;gap:8px;align-items:end}
+    .region-actions .full{grid-column:1/-1}
+
+    @media (max-width:1100px){.vats-panel{grid-template-columns:1fr}.vats-stage{min-height:390px}}
+    @media (max-width:900px){.config{grid-template-columns:repeat(2,1fr)}.config .name{grid-column:1/-1}.layout{grid-template-columns:1fr}.body-grid,.kagune-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}}
+    @media (max-width:620px){.app{padding:10px}.config{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.quick{grid-template-columns:64px 1fr 1fr}h1{font-size:18px}.vats-stage{min-height:520px}.figure{top:46%;transform:translate(-50%,-46%) scale(.9)}.vats-tag{width:132px}}
+    @media (max-width:520px){.region-actions{grid-template-columns:1fr 1fr}.region-actions label{grid-column:1/-1}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1></h1>
+      <div class="sub"></div>
+    </div>
+    <div class="top-actions">
+      <button id="refBtn">Estados físicos</button>
+      <button id="exportBtn">Exportar</button>
+      <button id="importBtn">Importar</button><input id="importFile" class="hide" type="file" accept="application/json">
+      <button id="resetBtn" class="danger">Resetar</button>
+    </div>
+  </header>
+
+  <section class="panel grid config">
+    <label class="name">Personagem<input id="charName" placeholder="Nome do personagem"></label>
+    <label>Grau<input id="degree" type="number" min="0" max="30" step="1"></label>
+    <label>HP por região<input id="baseHp" type="number" min="1" step="1"></label>
+    <label>RC máximo<input id="rcMax" type="number" min="0" step="1"></label>
+    <label>RC atual<input id="rcCurrent" type="number" min="0" step="1"></label>
+    <label>Fome<input id="hunger" type="number" min="0" max="10" step="1"></label>
+    <div class="full toolbar">
+      <button id="applyHp">Aplicar HP máximo ao corpo</button>
+      <button id="fullBody" class="good">Encher HP corporal</button>
+      <button id="fullRc" class="good">Encher RC</button>
+      <button id="nextTurn" class="primary">Próximo turno</button>
+      <span class="pill">Turno <b id="turnNo">1</b></span>
+      <span class="pill" id="saveStatus">salvo localmente</span>
+    </div>
+  </section>
+
+  <div class="layout">
+    <main>
+      <section class="panel">
+        <div class="section-title"><h2>Corpo</h2><span class="muted"></span></div>
+        <div class="vats-panel">
+          <div id="vatsPanel" class="vats-card"></div>
+          <div class="vats-summary">
+            <div class="vats-card">
+              <div class="vats-title"><b>REGIÃO SELECIONADA</b><span class="pill" id="selectedRegionLabel">—</span></div>
+              <div id="selectedRegionInfo" class="callout">Selecione uma parte do corpo no VATS.</div>
+              <div class="region-actions">
+                <label>Valor<input id="focusAmount" type="number" min="0" step="1" value="5"></label>
+                <button id="focusDamage" class="danger">Dano</button>
+                <button id="focusHeal" class="good">Cura</button>
+                <button id="focusZero">0 HP</button>
+                <button id="focusMax">Máx.</button>
+                <button id="focusDestroy">Marcar destruído</button>
+                <button id="focusAddState">Adicionar estado</button>
+                <select id="focusStateSelect"></select>
+              </div>
+            </div>
+            <div class="stats">
+              <div class="stat"><b id="bodyTotalNow">0</b><span>HP corporal atual</span></div>
+              <div class="stat"><b id="bodyTotalMax">0</b><span>HP corporal máximo</span></div>
+              <div class="stat"><b id="destroyedCount">0</b><span>membros destruídos</span></div>
+            </div>
+          </div>
+        </div>
+        <div id="bodyGrid" class="body-grid" style="margin-top:12px"></div>
+      </section>
+
+      <section class="panel section">
+        <div class="section-title">
+          <h2>Kagune e Kakuhou</h2>
+          <div class="toolbar"><button id="addKagunePart">Adicionar parte</button></div>
+        </div>
+        <div class="grid config" style="grid-template-columns:1fr 1fr 1fr">
+          <label>Tipo<select id="kaguneType"><option>Rinkaku</option><option>Bikaku</option><option>Ukaku</option><option>Koukaku</option><option>Quimera</option><option>Outro</option></select></label>
+          <label>HP padrão da parte<input id="kaguneHp" type="number" min="1" step="1"></label>
+          <label>Nome base<input id="kaguneName" placeholder="Kagune"></label>
+        </div>
+        <div class="callout" id="kakuhouInfo"></div>
+        <div class="toolbar" style="margin-bottom:10px">
+          <button id="destroyKakuhou" class="danger">Destruir Kakuhou</button>
+          <button id="repairKakuhou" class="good">Restaurar Kakuhou</button>
+        </div>
+        <div id="kaguneGrid" class="kagune-grid"></div>
+      </section>
+
+      <section class="panel section">
+        <div class="section-title"><h2>Estados gerais</h2><span class="muted">Posicionamento e colapso.</span></div>
+        <div class="state-add"><select id="globalStateSelect"></select><button id="addGlobalState">Adicionar</button></div>
+        <div id="globalTags" class="tags"></div>
+      </section>
+    </main>
+
+    <aside>
+      <section class="panel">
+        <h2>Regeneração</h2>
+        <div class="healer">
+          <div><strong id="healPreview">0 HP / região</strong><small id="healDetail">Sem regeneração passiva.</small></div>
+          <button id="passiveHeal" class="primary">Cura passiva</button>
+        </div>
+        <div class="stats">
+          <div class="stat"><b id="rcSpentTotal">0</b><span>RC gasto total</span></div>
+          <div class="stat"><b id="rcSpentPassive">0</b><span>RC em regen passiva</span></div>
+          <div class="stat"><b id="lastCost">0</b><span>Último gasto de RC</span></div>
+        </div>
+        <div class="callout">
+          <b>Gasto manual / skill</b>
+          <div class="quick" style="grid-template-columns:72px 1fr auto;margin-top:7px">
+            <input id="manualRcAmount" type="number" min="0" step="1" value="2">
+            <input id="manualRcReason" placeholder="Nome da skill / motivo">
+            <button id="manualRcSpend">Gastar RC</button>
+          </div>
+          <div class="smallrow"><button id="resetRcSpent">Zerar contador de RC gasto</button></div>
+        </div>
+        <label>Tipo de regeneração
+          <select id="regenType">
+            <option value="none">Nenhuma</option>
+            <option value="normal">Regeneração Anormal</option>
+            <option value="superior">Regeneração Anormal Superior</option>
+          </select>
+        </label>
+        <label style="margin-top:8px">Nível<select id="regenLevel"></select></label>
+        <div class="callout" id="regenRule"></div>
+        <div id="specialHealButtons" class="toolbar"></div>
+      </section>
+
+      <section class="panel section">
+        <h2>Perks habilitáveis</h2>
+        <div id="perkList" class="perk-list"></div>
+      </section>
+
+      <section class="panel section">
+        <div class="section-title"><h2>Histórico</h2><button id="clearLog">Limpar</button></div>
+        <div id="history" class="history"></div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<div class="modal" id="refModal">
+  <div class="modal-card">
+    <div class="modal-head"><div><h2>Estados físicos</h2><div class="sub">Referência rápida dos ferimentos usados na mesa.</div></div><button id="closeRef">Fechar</button></div>
+    <div id="referenceContent"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const KEY='fomeJusticaHpRcTracker_v2';
+  const BODY_TEMPLATE=[
+    ['head','Cabeça','head'],['torso','Tronco','torso'],['armL','Braço Esquerdo','arm'],['armR','Braço Direito','arm'],['legL','Perna Esquerda','leg'],['legR','Perna Direita','leg']
+  ];
+  const PART_LABEL_POS={head:'head',torso:'torso',armL:'armL',armR:'armR',legL:'legL',legR:'legR'};
+  const PART_CONNECTOR_STYLE={
+    head:'left:132px;top:50px;width:52px;transform:rotate(12deg);',
+    torso:'right:132px;top:126px;width:44px;transform:rotate(0deg);',
+    armL:'left:132px;top:204px;width:46px;transform:rotate(8deg);',
+    armR:'right:132px;top:218px;width:48px;transform:rotate(-10deg);',
+    legL:'left:132px;bottom:78px;width:48px;transform:rotate(-5deg);',
+    legR:'right:132px;bottom:78px;width:48px;transform:rotate(5deg);'
+  };
+  const INJURIES={
+    blood:[
+      ['Sangramento Leve','corte profundo ou perfuração pequena.','1d4/turno na região.'],
+      ['Sangramento Grave','artéria, ferida enorme ou membro quase arrancado.','1d6/turno e -1d físico.'],
+      ['Hemorragia','perda de sangue absurda, interna ou externa.','1d8/turno e -1 RC/turno.']
+    ],
+    arm:[
+      ['Braço Ferido','músculo ou tendão danificado.','-1d com aquele braço.'],
+      ['Braço Quebrado','osso rompido ou articulação destruída.','-2d e força limitada.'],
+      ['Braço Destruído','arrancado, triturado ou inutilizado.','não usa o braço.'],
+      ['Mão Destruída','mão esmagada, cortada ou sem dedos úteis.','não segura nem manipula.']
+    ],
+    leg:[
+      ['Perna Ferida','dano que atrapalha apoio e corrida.','-1d em mobilidade.'],
+      ['Perna Quebrada','osso rompido ou articulação destruída.','1/2 movimento e -2d Esquiva.'],
+      ['Perna Destruída','arrancada ou esmagada.','rasteja; -3d Esquiva.']
+    ],
+    torso:[
+      ['Costelas Quebradas','impacto pesado no tórax.','testes de Vigor em esforço; pancada no torso +1 Passo.'],
+      ['Tórax Esmagado','peito comprimido ou caixa torácica colapsada.','pode perder Reação e sofrer dano extra.'],
+      ['Pulmão Perfurado','perfuração relevante do pulmão.','-2d em esforço.'],
+      ['Dois Pulmões Comprometidos','ambos danificados.','-3d e limita ações extras.'],
+      ['Estômago Destruído','abdômen aberto, rasgado ou esmagado.','-2 RC/turno; regeneração mais cara.'],
+      ['Órgãos Destruídos','fígado, rins, intestinos etc. destruídos.','-1d físico e regeneração +1 RC.'],
+      ['Coluna Danificada','trauma vertebral sem ruptura completa.','-2d Agilidade e menos movimento.'],
+      ['Coluna Quebrada','ruptura grave da coluna.','pernas não funcionam.']
+    ],
+    head:[
+      ['Mandíbula Destruída','deslocada, esmagada ou arrancada.','não morde nem fala direito.'],
+      ['Um Olho Destruído','perda funcional de um olho.','-1d visão/acerto visual.'],
+      ['Cego','ambos os olhos inutilizados.','penalidades severas de visão.'],
+      ['Ouvido Rompido','tímpano ou estrutura auditiva danificada.','-1d auditivo.'],
+      ['Surdo','ambos os ouvidos inutilizados.','não percebe som normalmente.'],
+      ['Atordoado','pancada, explosão ou choque momentâneo.','-2d no próximo teste.'],
+      ['Concussão','golpe relevante na cabeça.','-1d mental; risco de Atordoado.']
+    ],
+    global:[
+      ['Empalado','objeto atravessou e prendeu o corpo.','-2d Esquiva; não se afasta.'],
+      ['Esmagado','preso sob peso ou contra parede.','não se move; -2d ações móveis.'],
+      ['Arremessado','foi lançado com força.','colisão + Caído conforme distância.'],
+      ['Caído','perdeu apoio e foi ao chão.','corpo a corpo contra ele +1d; Esquiva -1d.'],
+      ['Sub-Vivo','dano que mataria um humano, mas a biologia ainda segura.','-2d físicos; regeneração +1 RC.'],
+      ['Colapsado','o corpo ainda vive, mas mal funciona.','1 Ação/turno, sem Reação.'],
+      ['Exaurido de RC','chegou a 0 RC enquanto dependia disso para se manter.','sem regeneração ativa e sem técnicas de RC.']
+    ]
+  };
+  const ALL_INJURIES=Object.fromEntries(Object.values(INJURIES).flat().map(x=>[x[0],x]));
+  const PERKS=[
+    ['cellsAgile','Células Ágeis','+1/6 do HP máximo na cura passiva.'],
+    ['kami','Vivo como um Kami','x2 na regeneração normal biológica. Multiplicadores não acumulam.'],
+    ['fleshRefuses','Carne que se Recusa a Morrer','20 RC: permanece com 1 HP e x2 regeneração por 2 turnos; sem recuperar RC.'],
+    ['axolotl','Regeneração do Axolote','6 RC: reconstrói todos os membros corporais perdidos; não recupera HP.'],
+    ['hungryHydra','Hidra Faminta','5 RC: uma cauda destruída regenera imediatamente, 1x/turno.'],
+    ['cellCannibal','Canibalismo Celular','Sacrifique até 2 caudas/turno: 10% HP +4 RC; depois 5% +2 RC.'],
+    ['growing','Aquilo que Continua Crescendo','Cauda destruída por inimigo dá 0,5 Crescimento; em 5, regenera todas.'],
+    ['centipede','Centopeia','Ativação por 3 turnos; primeira cauda destruída/turno regenera grátis.'],
+    ['breathe','Respirar Fundo','2x/descanso: cura Vigor +4.'],
+    ['secondWind','Segundo Fôlego','1x/descanso: cura ceil(Vigor/2) quando estiver em metade ou menos.'],
+    ['angelDeath','Anjo da Morte','Abate pessoal: +2 RC, máximo +4 RC/turno.'],
+    ['meatFortress','Fortaleza de Carne','Se o dano for totalmente anulado: +2 RC.']
+  ];
+
+  const defaultState=()=>({
+    version:2,name:'',degree:4,baseHp:20,rcMax:20,rc:20,hunger:1,turn:1,vigor:4,focusRegion:'torso',
+    body:BODY_TEMPLATE.map(([id,name,type])=>({id,name,type,current:20,max:20,states:[],destroyed:false})),
+    kagune:{type:'Rinkaku',defaultHp:20,baseName:'Kagune',parts:[{id:uid(),name:'Kagune 1',current:20,max:20,broken:false,readyTurn:null,regenBlockedUntil:null}],kakuhouUntil:null},
+    regen:{type:'none',level:1,meter:0,lastCost:0},
+    tracking:{rcSpentTotal:0,rcSpentPassive:0,lastSpend:0,lastReason:''},
+    perks:Object.fromEntries(PERKS.map(p=>[p[0],false])),
+    counters:{fleshTurns:0,hydraUsedTurn:false,centipedeTurns:0,centipedeFreeUsed:false,cannibalUses:0,growth:0,breatheUses:0,secondWindUsed:false,angelRcThisTurn:0},
+    globalStates:[],history:[]
+  });
+  function uid(){return Math.random().toString(36).slice(2,9)}
+  let state=load();
+
+  const $=id=>document.getElementById(id);
+  function num(v,d=0){const n=Number(v);return Number.isFinite(n)?n:d}
+  function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+  function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function save(){localStorage.setItem(KEY,JSON.stringify(state));$('saveStatus').textContent='salvo localmente';}
+  function load(){try{const s=JSON.parse(localStorage.getItem(KEY));return s&&s.version?hydrate(s):defaultState()}catch{return defaultState()}}
+  function hydrate(s){const d=defaultState();return {...d,...s,regen:{...d.regen,...s.regen},tracking:{...d.tracking,...s.tracking},perks:{...d.perks,...s.perks},counters:{...d.counters,...s.counters},kagune:{...d.kagune,...s.kagune},body:(s.body||d.body).map((r,i)=>({...d.body[i],...r}))}}
+  function log(text){state.history.unshift({t:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),turn:state.turn,text});state.history=state.history.slice(0,120);renderHistory();save()}
+
+  function initInputs(){
+    $('charName').value=state.name;$('degree').value=state.degree;$('baseHp').value=state.baseHp;$('rcMax').value=state.rcMax;$('rcCurrent').value=state.rc;$('hunger').value=state.hunger;
+    $('kaguneType').value=state.kagune.type;$('kaguneHp').value=state.kagune.defaultHp;$('kaguneName').value=state.kagune.baseName;
+    $('regenType').value=state.regen.type;updateRegenLevels();$('regenLevel').value=state.regen.level;
+    ['charName','degree','baseHp','rcMax','rcCurrent','hunger','kaguneType','kaguneHp','kaguneName'].forEach(id=>$(id).addEventListener('change',syncInputs));
+    $('regenType').addEventListener('change',()=>{state.regen.type=$('regenType').value;state.regen.level=1;state.regen.meter=0;updateRegenLevels();save();renderAll()});
+    $('regenLevel').addEventListener('change',()=>{state.regen.level=num($('regenLevel').value,1);save();renderAll()});
+  }
+  function syncInputs(){
+    state.name=$('charName').value;state.degree=Math.max(0,num($('degree').value,0));state.baseHp=Math.max(1,num($('baseHp').value,1));state.rcMax=Math.max(0,num($('rcMax').value,0));state.rc=clamp(num($('rcCurrent').value,0),0,state.rcMax);state.hunger=clamp(num($('hunger').value,0),0,10);
+    state.kagune.type=$('kaguneType').value;state.kagune.defaultHp=Math.max(1,num($('kaguneHp').value,1));state.kagune.baseName=$('kaguneName').value||'Kagune';save();renderAll();
+  }
+  function updateRegenLevels(){
+    const type=$('regenType').value;const max=type==='normal'?6:type==='superior'?4:1;$('regenLevel').innerHTML='';for(let i=1;i<=max;i++)$('regenLevel').insertAdjacentHTML('beforeend',`<option value="${i}">Nível ${i}</option>`);$('regenLevel').disabled=type==='none';
+  }
+
+  function injuryOptions(type){
+    const arr=[...INJURIES.blood,...(INJURIES[type]||[])];
+    return `<option value="">Adicionar estado…</option>`+arr.map(x=>`<option>${esc(x[0])}</option>`).join('');
+  }
+  function hpBar(cur,max){const p=max?clamp(cur/max*100,0,100):0;const cls=p<=25?'low':p<=55?'mid':'';return `<div class="bar"><i class="${cls}" style="width:${p}%"></i></div>`}
+  function bodyPercent(r){return r.max?Math.floor(clamp(r.current/r.max,0,1)*100):0}
+  function bodyClass(r){const p=bodyPercent(r);if(p<=25||r.current<=0)return'low';if(p<=55)return'mid';return''}
+  function currentRegion(){return state.body.find(r=>r.id===state.focusRegion)||state.body[0]}
+
+  function bodyCard(r){
+    const tags=r.states.map(s=>`<span class="tag" title="${esc((ALL_INJURIES[s]||['','',''])[2])}">${esc(s)} <button data-rm-state="${r.id}" data-state="${esc(s)}">×</button></span>`).join('');
+    return `<article id="region-${r.id}" class="region ${r.current<=0?'critical':''} ${state.focusRegion===r.id?'focused':''}">
+      <div class="region-head"><h3>${esc(r.name)}</h3><span class="hp-num ${r.current<=0?'red':''}">${r.current} / ${r.max}</span></div>${hpBar(r.current,r.max)}
+      <div class="quick"><input data-dmg-val="${r.id}" type="number" min="0" value="5"><button data-damage="${r.id}" class="danger">Dano</button><button data-heal="${r.id}" class="good">Cura</button></div>
+      <div class="smallrow"><button data-focus="${r.id}">Focar</button><button data-zero="${r.id}">0 HP</button><button data-max="${r.id}">Máximo</button><button data-destroy-body="${r.id}" class="${r.destroyed?'warn':''}">${r.destroyed?'Reconstruído?':'Marcar destruído'}</button></div>
+      <div class="state-add"><select data-state-select="${r.id}">${injuryOptions(r.type)}</select><button data-add-state="${r.id}">+</button></div><div class="tags">${tags}</div>
+    </article>`;
+  }
+  function renderBody(){ $('bodyGrid').innerHTML=state.body.map(bodyCard).join('') }
+
+  function vatsTag(r){
+    const cls=bodyClass(r);
+    const p=bodyPercent(r);
+    const stateLabel=r.states.length?r.states[0]:(r.destroyed?'Destruído':'');
+    return `<div class="vats-tag ${PART_LABEL_POS[r.id]} ${state.focusRegion===r.id?'active':''}" data-focus="${r.id}">
+      <div class="tag-head"><b>${esc(r.name)}</b><span class="pct">${p}%</span></div>
+      ${hpBar(r.current,r.max)}
+      <div class="mini"><span>${r.current}/${r.max}</span><span>${r.destroyed?'destruído':'ok'}</span></div>
+      <div class="state">${esc(stateLabel)}</div>
+    </div><div class="connector" style="${PART_CONNECTOR_STYLE[r.id]}"></div>`;
+  }
+  function renderVats(){
+    const parts=state.body.map(r=>`<div class="part ${r.id} ${bodyClass(r)} ${state.focusRegion===r.id?'active':''}" data-focus="${r.id}" title="${esc(r.name)}"></div>`).join('');
+    const tags=state.body.map(vatsTag).join('');
+    $('vatsPanel').innerHTML=`
+      <div class="vats-title"><b>V.A.T.S. CORPORAL</b><span class="pill">leitura por parte</span></div>
+      <div class="vats-stage">
+        <div class="vats-gridline"></div>
+        <div class="scanline"></div>
+        <div class="figure">${parts}</div>
+        ${tags}
+      </div>`;
+    renderFocusedRegionBox();
+    const currentTotal=state.body.reduce((a,r)=>a+r.current,0);
+    const maxTotal=state.body.reduce((a,r)=>a+r.max,0);
+    const destroyed=state.body.filter(r=>r.destroyed).length;
+    $('bodyTotalNow').textContent=currentTotal;
+    $('bodyTotalMax').textContent=maxTotal;
+    $('destroyedCount').textContent=destroyed;
+  }
+  function renderFocusedRegionBox(){
+    const r=currentRegion();
+    $('selectedRegionLabel').textContent=r.name;
+    $('focusStateSelect').innerHTML=injuryOptions(r.type);
+    const states=r.states.length?r.states.map(s=>`<span class="tag">${esc(s)}</span>`).join(' '):'<span class="muted">Sem estados.</span>';
+    $('selectedRegionInfo').innerHTML=`<b>${esc(r.name)}</b> · ${r.current}/${r.max} HP · ${bodyPercent(r)}%<br>${r.destroyed?'<span class="red">Marcado como destruído.</span><br>':''}${states}`;
+    $('focusDestroy').textContent=r.destroyed?'Reconstruído?':'Marcar destruído';
+  }
+
+  function partStatus(p){
+    if(state.kagune.kakuhouUntil && state.turn<state.kagune.kakuhouUntil)return '<span class="red">bloqueada pelo Kakuhou</span>';
+    if(p.broken){if(p.regenBlockedUntil&&state.turn<p.regenBlockedUntil)return `<span class="red">quebrada · bloqueada até turno ${p.regenBlockedUntil}</span>`;if(p.readyTurn&&state.turn<p.readyTurn)return `<span class="red">quebrada · aguarde até turno ${p.readyTurn}</span>`;return '<span class="green">quebrada · pode regenerar por 2 RC</span>'}return '<span class="green">íntegra</span>';
+  }
+  function kaguneCard(p){
+    const canRegen=p.broken && (!p.readyTurn||state.turn>=p.readyTurn) && (!p.regenBlockedUntil||state.turn>=p.regenBlockedUntil) && !(state.kagune.kakuhouUntil&&state.turn<state.kagune.kakuhouUntil);
+    const tail=/cauda/i.test(p.name)||['Rinkaku','Bikaku'].includes(state.kagune.type);
+    return `<article class="region ${p.current<=0?'critical':''}">
+      <div class="region-head"><input data-k-name="${p.id}" value="${esc(p.name)}" style="font-weight:700"><span class="hp-num">${p.current} / ${p.max}</span></div>${hpBar(p.current,p.max)}
+      <div class="sub">${partStatus(p)}</div>
+      <div class="quick"><input data-k-val="${p.id}" type="number" min="0" value="5"><button data-k-dmg="${p.id}" class="danger">Dano</button><button data-k-heal="${p.id}" class="good">Cura</button></div>
+      <div class="smallrow"><button data-k-break="${p.id}" class="danger">Quebrar</button>${state.perks.growing&&tail?`<button data-k-break-enemy="${p.id}" class="danger">Quebrar (inimigo)</button>`:''}${canRegen?`<button data-k-regen="${p.id}" class="good">Regenerar · 2 RC</button>`:''}${state.perks.hungryHydra&&tail&&p.broken&&!state.counters.hydraUsedTurn?`<button data-hydra="${p.id}" class="warn">Hidra · 5 RC</button>`:''}${state.perks.cellCannibal&&tail&&!p.broken&&state.counters.cannibalUses<2?`<button data-sacrifice="${p.id}" class="warn">Sacrificar cauda</button>`:''}<button data-k-remove="${p.id}">Remover</button></div>
+    </article>`;
+  }
+  function renderKagune(){
+    $('kaguneGrid').innerHTML=state.kagune.parts.map(kaguneCard).join('');
+    const blocked=state.kagune.kakuhouUntil&&state.turn<state.kagune.kakuhouUntil;
+    $('kakuhouInfo').innerHTML=blocked?`<b class="kakuhou-bad">Kakuhou destruído.</b> Kagune indisponível até o turno ${state.kagune.kakuhouUntil}.`:`<b class="kakuhou-ok">Kakuhou íntegro.</b> Se for destruído: perde 1d6 RC por vazamento e fica 2 turnos sem Kagune.`;
+    $('addKagunePart').disabled=!['Rinkaku','Bikaku','Quimera'].includes(state.kagune.type);
+  }
+
+  function normalBase(level){return 1+(level-1)*2}
+  function passiveBreakdown(){
+    const L=state.regen.level;let bio=0,other=0,source=[];
+    if(state.regen.type==='normal'){bio=normalBase(L);source.push(`Anormal ${normalBase(L)}`)}
+    if(state.regen.type==='superior'){
+      if(L===4){const val=Math.floor(state.baseHp/2);bio=val;source.push(`Superior 1/2 (${val})`)}
+      else {const frac=L===1?6:L===2?4:2;const val=Math.floor(state.baseHp/frac);bio=val;source.push(`Superior ${L===1?'1/6':L===2?'1/4':'1/2'} (${val})`)}
+    }
+    if(state.perks.cellsAgile){other+=Math.floor(state.baseHp/6);source.push(`Células Ágeis ${Math.floor(state.baseHp/6)}`)}
+    if(bio+other>0){if(bio>0)bio+=state.degree;else other+=state.degree;source.push(`Grau +${state.degree}`)}
+    let total=bio+other;let mult=1;
+    if(state.counters.fleshTurns>0)mult=2;else if(state.perks.kami&&bio>0)mult=2;
+    if(mult>1){total=Math.floor(total*mult);source.push(`x${mult}`)}
+    return {perRegion:total,bio,other,mult,source};
+  }
+  function healThreshold(){return state.regen.type==='none'?null:state.baseHp+state.regen.level}
+  function renderRegen(){
+    const p=passiveBreakdown();$('healPreview').textContent=`${p.perRegion} HP / região`;$('healDetail').textContent=p.source.length?p.source.join(' · '):'Sem regeneração passiva.';
+    $('rcSpentTotal').textContent=state.tracking.rcSpentTotal||0;$('rcSpentPassive').textContent=state.tracking.rcSpentPassive||0;$('lastCost').textContent=state.tracking.lastSpend||0;
+    const L=state.regen.level;
+    $('regenRule').innerHTML=state.regen.type==='normal'?`Cura base: <b>${normalBase(L)}</b> por região + <b>${state.degree}</b> do Grau. Níveis 1–6: 1/3/5/7/9/11 antes do Grau. Custo da cura passiva: <b>floor(((cura total / HP máx.) + nível) × 2)</b>.`:state.regen.type==='superior'?`N1: 1/6 HP; N2: 1/4; N3–N4: 1/2. N4 também libera cura total por 6 RC. A cura se aplica em <b>todas</b> as regiões igualmente. Custo passivo: <b>floor(((cura total / HP máx.) + nível) × 2)</b>.`:'Escolha uma regeneração. Células Ágeis pode funcionar separadamente.';
+    const btn=[];
+    if(state.regen.type==='superior'&&L===4)btn.push(`<button data-action="full-superior" class="good">Cura total · 6 RC</button>`);
+    if(state.perks.fleshRefuses)btn.push(`<button data-action="flesh" ${state.rc<20||state.counters.fleshTurns>0?'disabled':''}>Carne que se Recusa · 20 RC</button>`);
+    if(state.perks.axolotl)btn.push(`<button data-action="axolotl" ${state.rc<6?'disabled':''}>Axolote · 6 RC</button>`);
+    if(state.perks.growing&&state.counters.growth>=5)btn.push(`<button data-action="growth" class="good">Consumir Crescimento · regenerar caudas</button>`);
+    if(state.perks.centipede)btn.push(`<button data-action="centipede" ${state.counters.centipedeTurns>0?'disabled':''}>Ativar Centopeia · 3 turnos</button>`);
+    if(state.perks.breathe)btn.push(`<button data-action="breathe" ${state.counters.breatheUses>=2?'disabled':''}>Respirar Fundo (${state.counters.breatheUses}/2)</button>`);
+    if(state.perks.secondWind)btn.push(`<button data-action="secondwind" ${state.counters.secondWindUsed?'disabled':''}>Segundo Fôlego</button>`);
+    if(state.perks.angelDeath)btn.push(`<button data-action="angel" ${state.counters.angelRcThisTurn>=4?'disabled':''}>Anjo da Morte +2 RC</button>`);
+    if(state.perks.meatFortress)btn.push(`<button data-action="fortress">Fortaleza de Carne +2 RC</button>`);
+    $('specialHealButtons').innerHTML=btn.join('');
+  }
+
+  function renderPerks(){
+    $('perkList').innerHTML=PERKS.map(([id,name,desc])=>`<label class="perk"><input type="checkbox" data-perk="${id}" ${state.perks[id]?'checked':''}><span class="grow"><b>${name}</b><br><small>${desc}</small>${id==='breathe'||id==='secondWind'?`<span class="inline-select"><span></span><input data-vigor type="number" min="0" value="${state.vigor}" title="Vigor"></span>`:''}</span></label>`).join('');
+  }
+  function renderGlobal(){
+    $('globalStateSelect').innerHTML='<option value="">Adicionar estado…</option>'+INJURIES.global.map(x=>`<option>${esc(x[0])}</option>`).join('');
+    $('globalTags').innerHTML=state.globalStates.map(s=>`<span class="tag" title="${esc((ALL_INJURIES[s]||['','',''])[2])}">${esc(s)} <button data-rm-global="${esc(s)}">×</button></span>`).join('');
+  }
+  function renderHistory(){$('history').innerHTML=state.history.length?state.history.map(x=>`<div class="log"><time>T${x.turn} · ${x.t}</time>${esc(x.text)}</div>`).join(''):'<div class="muted">Nenhuma alteração ainda.</div>'}
+  function renderReference(){
+    const groups=[['Sangue',INJURIES.blood],['Membros — braços',INJURIES.arm],['Membros — pernas',INJURIES.leg],['Tronco e órgãos',INJURIES.torso],['Cabeça e sentidos',INJURIES.head],['Posicionamento e colapso',INJURIES.global]];
+    $('referenceContent').innerHTML=groups.map(([n,a])=>`<details><summary>${n}</summary><div class="reference">${a.map(x=>`<div><b>${x[0]}</b><span>Define: ${x[1]} Efeito: ${x[2]}</span></div>`).join('')}</div></details>`).join('')+`<details><summary>Cooldowns de Kagune</summary><div class="reference"><div><b>Kakuhou destruído</b><span>1d6 RC por vazamento e 2 turnos sem Kagune.</span></div><div><b>Kagune quebrada</b><span>Espera 1 turno inteiro; no turno seguinte, 2 RC para crescer de novo.</span></div></div></details>`;
+  }
+  function renderAll(){
+    $('rcCurrent').value=state.rc;$('rcMax').value=state.rcMax;$('hunger').value=state.hunger;$('degree').value=state.degree;$('baseHp').value=state.baseHp;$('turnNo').textContent=state.turn;
+    renderBody();renderVats();renderKagune();renderRegen();renderPerks();renderGlobal();renderHistory();save();
+  }
+
+  function setFocus(id,scroll=false){ state.focusRegion=id; renderAll(); if(scroll){document.getElementById(`region-${id}`)?.scrollIntoView({behavior:'smooth',block:'nearest'})}}
+  function applyDamageBody(id,amt){const r=state.body.find(x=>x.id===id);if(!r)return;r.current=clamp(r.current-amt,0,r.max);if(r.current===0&&['arm','leg'].includes(r.type))r.destroyed=true;log(`${r.name}: -${amt} HP → ${r.current}/${r.max}`);renderAll()}
+  function applyHealBody(id,amt){const r=state.body.find(x=>x.id===id);if(!r)return;const actual=Math.min(amt,r.max-r.current);r.current+=actual;log(`${r.name}: +${actual} HP → ${r.current}/${r.max}`);renderAll()}
+  function healAllBody(amount,label='Cura'){let total=0;state.body.forEach(r=>{const a=Math.min(amount,Math.max(0,r.max-r.current));r.current+=a;total+=a});log(`${label}: +${amount} por região, ${total} HP totais.`);return total}
+  function spendRc(cost,reason,category='skill'){
+    cost=Math.max(0,Math.floor(num(cost,0)));
+    if(cost<=0){state.tracking.lastSpend=0;state.tracking.lastReason=reason||'';return true}
+    const had=state.rc;
+    const actual=Math.min(had,cost);
+    state.rc=Math.max(0,state.rc-cost);
+    state.tracking.rcSpentTotal=(state.tracking.rcSpentTotal||0)+actual;
+    if(category==='passive')state.tracking.rcSpentPassive=(state.tracking.rcSpentPassive||0)+actual;
+    state.tracking.lastSpend=actual;state.tracking.lastReason=reason||'';
+    if(had<cost){state.hunger=clamp(state.hunger+1,0,10);log(`${reason}: custo ${cost} RC, havia ${had}. Foram gastos ${actual} RC, RC zerado e +1 Fome.`)}else log(`${reason}: -${cost} RC.`);
+    return had>=cost
+  }
+  function gainRc(v,reason){const before=state.rc;state.rc=clamp(state.rc+v,0,state.rcMax);log(`${reason}: +${state.rc-before} RC.`)}
+
+function doPassiveHeal(){
+  const p=passiveBreakdown();
+
+  if(p.perRegion<=0){
+    log('Cura passiva: nenhum efeito ativo.');
+    return;
+  }
+
+let total = 0;
+
+state.body.forEach(r => {
+
+  // membro destruído não recebe cura normal
+  if (r.destroyed) return;
+
+  const antes = r.current;
+
+  r.current = Math.min(
+    r.max,
+    r.current + p.perRegion
+  );
+
+  // contabiliza SOMENTE o HP que realmente entrou
+  const curado = r.current - antes;
+
+  total += curado;
+});
+
+  let cost=0;
+
+  if(state.regen.type!=='none' && total>0){
+    cost=Math.floor((total/(state.baseHp+state.regen.level))*2);
+
+    if(cost){
+      spendRc(cost,'Regeneração passiva','passive');
+    }
+  }
+
+  state.regen.lastCost=cost;
+
+  log(`Cura passiva: +${p.perRegion} por região; ${total} HP efetivos; custo ${cost} RC.`);
+
+  renderAll();
+}
+  function breakKagune(id,enemy=false){
+    const p=state.kagune.parts.find(x=>x.id===id);if(!p)return;p.current=0;p.broken=true;p.readyTurn=state.turn+2;
+    if(enemy&&state.perks.growing){state.counters.growth=Math.min(5,state.counters.growth+.5)}
+    const isTail=/cauda/i.test(p.name)||['Rinkaku','Bikaku'].includes(state.kagune.type);
+    if(isTail&&state.perks.centipede&&state.counters.centipedeTurns>0&&!state.counters.centipedeFreeUsed){p.current=p.max;p.broken=false;p.readyTurn=null;state.counters.centipedeFreeUsed=true;log(`${p.name}: destruída e regenerada gratuitamente por Centopeia.`)}else log(`${p.name}: quebrada. Regeneração disponível no turno ${p.readyTurn}.`);renderAll();
+  }
+  function regenKagune(id,cost=2,label='Regenerar Kagune'){
+    const p=state.kagune.parts.find(x=>x.id===id);if(!p||!p.broken)return;if(state.rc<cost){log(`${label}: RC insuficiente.`);return}spendRc(cost,label,'skill');p.current=p.max;p.broken=false;p.readyTurn=null;p.regenBlockedUntil=null;log(`${p.name}: regenerada.`);renderAll();
+  }
+  function sacrificeTail(id){
+    const p=state.kagune.parts.find(x=>x.id===id);if(!p||p.broken||state.counters.cannibalUses>=2)return;state.counters.cannibalUses++;const first=state.counters.cannibalUses===1;const amount=Math.floor(state.baseHp*(first ? 0.10 : 0.05));
+    p.current=0;p.broken=true;p.readyTurn=null;p.regenBlockedUntil=state.turn+3;healAllBody(amount,`Canibalismo Celular (${first?'1ª':'2ª'} cauda)`);gainRc(first?4:2,'Canibalismo Celular');log(`${p.name}: sacrificada; regeneração natural bloqueada até turno ${p.regenBlockedUntil}.`);renderAll();
+  }
+
+  function nextTurn(){
+    state.turn++;state.counters.hydraUsedTurn=false;state.counters.centipedeFreeUsed=false;state.counters.cannibalUses=0;state.counters.angelRcThisTurn=0;
+    if(state.counters.fleshTurns>0)state.counters.fleshTurns--;if(state.counters.centipedeTurns>0)state.counters.centipedeTurns--;
+    if(state.kagune.kakuhouUntil&&state.turn>=state.kagune.kakuhouUntil){state.kagune.kakuhouUntil=null;log('Kakuhou regenerado: Kagune liberada novamente.')}
+    log(`Início do turno ${state.turn}.`);renderAll();
+  }
+
+  document.addEventListener('click',e=>{
+    const t=e.target;
+    if(t.dataset.focus){
+  setFocus(t.dataset.focus);
+  return;
+}
+    if(t.dataset.damage){const v=num(document.querySelector(`[data-dmg-val="${t.dataset.damage}"]`).value,0);applyDamageBody(t.dataset.damage,v)}
+    if(t.dataset.heal){const v=num(document.querySelector(`[data-dmg-val="${t.dataset.heal}"]`).value,0);applyHealBody(t.dataset.heal,v)}
+    if(t.dataset.zero){const r=state.body.find(x=>x.id===t.dataset.zero);r.current=0;if(['arm','leg'].includes(r.type))r.destroyed=true;log(`${r.name}: 0 HP.`);renderAll()}
+    if(t.dataset.max){const r=state.body.find(x=>x.id===t.dataset.max);r.current=r.max;log(`${r.name}: HP máximo.`);renderAll()}
+    if(t.dataset.destroyBody){const r=state.body.find(x=>x.id===t.dataset.destroyBody);r.destroyed=!r.destroyed;if(r.destroyed)r.current=0;log(`${r.name}: ${r.destroyed?'marcado como destruído':'marcado como reconstruído'}.`);renderAll()}
+    if(t.dataset.addState){const sel=document.querySelector(`[data-state-select="${t.dataset.addState}"]`),r=state.body.find(x=>x.id===t.dataset.addState);if(sel.value&&!r.states.includes(sel.value)){r.states.push(sel.value);log(`${r.name}: estado ${sel.value}.`);renderAll()}}
+    if(t.dataset.rmState){const r=state.body.find(x=>x.id===t.dataset.rmState);r.states=r.states.filter(s=>s!==t.dataset.state);renderAll()}
+    if(t.dataset.kDmg){const p=state.kagune.parts.find(x=>x.id===t.dataset.kDmg),v=num(document.querySelector(`[data-k-val="${p.id}"]`).value,0);p.current=clamp(p.current-v,0,p.max);if(p.current===0)breakKagune(p.id,false);else{log(`${p.name}: -${v} HP → ${p.current}/${p.max}`);renderAll()}}
+    if(t.dataset.kHeal){const p=state.kagune.parts.find(x=>x.id===t.dataset.kHeal),v=num(document.querySelector(`[data-k-val="${p.id}"]`).value,0),a=Math.min(v,p.max-p.current);p.current+=a;log(`${p.name}: +${a} HP.`);renderAll()}
+    if(t.dataset.kBreak)breakKagune(t.dataset.kBreak,false);
+    if(t.dataset.kBreakEnemy)breakKagune(t.dataset.kBreakEnemy,true);
+    if(t.dataset.kRegen)regenKagune(t.dataset.kRegen,2);
+    if(t.dataset.hydra){if(state.rc>=5){state.counters.hydraUsedTurn=true;regenKagune(t.dataset.hydra,5,'Hidra Faminta')}else log('Hidra Faminta: RC insuficiente.')}
+    if(t.dataset.sacrifice)sacrificeTail(t.dataset.sacrifice);
+    if(t.dataset.kRemove){state.kagune.parts=state.kagune.parts.filter(x=>x.id!==t.dataset.kRemove);log('Parte de Kagune removida.');renderAll()}
+    if(t.dataset.rmGlobal){state.globalStates=state.globalStates.filter(s=>s!==t.dataset.rmGlobal);renderAll()}
+    if(t.dataset.action)handleAction(t.dataset.action);
+  });
+  document.addEventListener('change',e=>{
+    if(e.target.dataset.perk){state.perks[e.target.dataset.perk]=e.target.checked;save();renderAll()}
+    if(e.target.dataset.vigor){state.vigor=Math.max(0,num(e.target.value,0));save();renderAll()}
+    if(e.target.dataset.kName){const p=state.kagune.parts.find(x=>x.id===e.target.dataset.kName);p.name=e.target.value||'Parte';save();renderAll()}
+  });
+
+  function handleAction(a){
+    if(a==='full-superior'){if(state.rc<6){log('Cura total: RC insuficiente.');return}spendRc(6,'Regeneração Anormal Superior N4','skill');state.body.forEach(r=>r.current=r.max);log('Regeneração Anormal Superior N4: cura total aplicada.');renderAll()}
+    if(a==='flesh'){if(state.rc>=20&&state.counters.fleshTurns===0){spendRc(20,'Carne que se Recusa a Morrer','skill');state.counters.fleshTurns=2;log('Carne que se Recusa a Morrer: regeneração x2 por 2 turnos.');renderAll()}}
+    if(a==='axolotl'){if(state.rc>=6){spendRc(6,'Regeneração do Axolote','skill');state.body.filter(r=>['arm','leg'].includes(r.type)&&r.destroyed).forEach(r=>r.destroyed=false);log('Regeneração do Axolote: membros perdidos reconstruídos; HP não recuperado.');renderAll()}}
+    if(a==='growth'){state.kagune.parts.forEach(p=>{if(p.broken){p.current=p.max;p.broken=false;p.readyTurn=null;p.regenBlockedUntil=null}});state.counters.growth=0;log('Aquilo que Continua Crescendo: todas as caudas regeneradas.');renderAll()}
+    if(a==='centipede'){state.counters.centipedeTurns=3;log('Centopeia ativada por 3 turnos.');renderAll()}
+    if(a==='breathe'){if(state.counters.breatheUses<2){state.counters.breatheUses++;healAllBody(state.vigor+4,'Respirar Fundo');renderAll()}}
+    if(a==='secondwind'){if(!state.counters.secondWindUsed){state.counters.secondWindUsed=true;healAllBody(Math.ceil(state.vigor/2),'Segundo Fôlego');renderAll()}}
+    if(a==='angel'){if(state.counters.angelRcThisTurn<4){const gain=Math.min(2,4-state.counters.angelRcThisTurn);state.counters.angelRcThisTurn+=gain;gainRc(gain,'Anjo da Morte');renderAll()}}
+    if(a==='fortress'){gainRc(2,'Fortaleza de Carne');renderAll()}
+  }
+
+  $('focusDamage').onclick=()=>{const r=currentRegion();applyDamageBody(r.id,num($('focusAmount').value,0))};
+  $('focusHeal').onclick=()=>{const r=currentRegion();applyHealBody(r.id,num($('focusAmount').value,0))};
+  $('focusZero').onclick=()=>{const r=currentRegion();r.current=0;if(['arm','leg'].includes(r.type))r.destroyed=true;log(`${r.name}: 0 HP.`);renderAll()};
+  $('focusMax').onclick=()=>{const r=currentRegion();r.current=r.max;log(`${r.name}: HP máximo.`);renderAll()};
+  $('focusDestroy').onclick=()=>{const r=currentRegion();r.destroyed=!r.destroyed;if(r.destroyed)r.current=0;log(`${r.name}: ${r.destroyed?'marcado como destruído':'marcado como reconstruído'}.`);renderAll()};
+  $('focusAddState').onclick=()=>{const r=currentRegion(),v=$('focusStateSelect').value;if(v&&!r.states.includes(v)){r.states.push(v);log(`${r.name}: estado ${v}.`);renderAll()}};
+
+  $('manualRcSpend').onclick=()=>{
+    const amount=Math.max(0,Math.floor(num($('manualRcAmount').value,0)));
+    const reason=$('manualRcReason').value.trim()||'Gasto manual / skill';
+    if(amount<=0){log('Gasto manual: valor inválido.');return}
+    spendRc(amount,reason,'skill');renderAll();
+  };
+
+  $('resetRcSpent').onclick=()=>{state.tracking.rcSpentTotal=0;state.tracking.rcSpentPassive=0;state.tracking.lastSpend=0;state.tracking.lastReason='';log('Contador de RC gasto zerado.');renderAll()};
+
+  $('applyHp').onclick=()=>{state.body.forEach(r=>{const wasFull=r.current===r.max;r.max=state.baseHp;r.current=wasFull?state.baseHp:Math.min(r.current,state.baseHp)});state.regen.meter=0;log(`HP máximo corporal alterado para ${state.baseHp}.`);renderAll()};
+  $('fullBody').onclick=()=>{state.body.forEach(r=>r.current=r.max);log('HP corporal restaurado ao máximo.');renderAll()};
+  $('fullRc').onclick=()=>{state.rc=state.rcMax;log('RC restaurado ao máximo.');renderAll()};
+  $('nextTurn').onclick=nextTurn;
+  $('passiveHeal').onclick=doPassiveHeal;
+  $('addKagunePart').onclick=()=>{if(!['Rinkaku','Bikaku','Quimera'].includes(state.kagune.type))return;const n=state.kagune.parts.length+1;const name=(state.kagune.type==='Rinkaku'||state.kagune.type==='Bikaku')?`Cauda ${n}`:`${state.kagune.baseName} ${n}`;state.kagune.parts.push({id:uid(),name,current:state.kagune.defaultHp,max:state.kagune.defaultHp,broken:false,readyTurn:null,regenBlockedUntil:null});log(`${name}: parte de Kagune adicionada.`);renderAll()};
+  $('destroyKakuhou').onclick=()=>{if(state.kagune.kakuhouUntil&&state.turn<state.kagune.kakuhouUntil)return;const roll=Math.floor(Math.random()*6)+1;state.rc=Math.max(0,state.rc-roll);state.kagune.kakuhouUntil=state.turn+2;log(`Kakuhou destruído: vazamento de ${roll} RC; 2 turnos sem Kagune.`);renderAll()};
+  $('repairKakuhou').onclick=()=>{state.kagune.kakuhouUntil=null;log('Kakuhou restaurado manualmente.');renderAll()};
+  $('addGlobalState').onclick=()=>{const v=$('globalStateSelect').value;if(v&&!state.globalStates.includes(v)){state.globalStates.push(v);log(`Estado geral: ${v}.`);renderAll()}};
+  $('clearLog').onclick=()=>{state.history=[];renderAll()};
+  $('refBtn').onclick=()=>{$('refModal').classList.add('open')};$('closeRef').onclick=()=>{$('refModal').classList.remove('open')};$('refModal').onclick=e=>{if(e.target===$('refModal'))$('refModal').classList.remove('open')};
+  $('exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${(state.name||'personagem').replace(/[^a-z0-9_-]+/gi,'_')}_tracker.json`;a.click();URL.revokeObjectURL(a.href)};
+  $('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=async e=>{try{const data=JSON.parse(await e.target.files[0].text());state=hydrate(data);initAfterImport();log('Ficha importada.')}catch{alert('Arquivo inválido.')}};
+  $('resetBtn').onclick=()=>{if(confirm('Apagar todos os dados locais deste tracker?')){state=defaultState();localStorage.removeItem(KEY);location.reload()}};
+  function initAfterImport(){initInputsValuesOnly();renderAll()}
+  function initInputsValuesOnly(){$('charName').value=state.name;$('degree').value=state.degree;$('baseHp').value=state.baseHp;$('rcMax').value=state.rcMax;$('rcCurrent').value=state.rc;$('hunger').value=state.hunger;$('kaguneType').value=state.kagune.type;$('kaguneHp').value=state.kagune.defaultHp;$('kaguneName').value=state.kagune.baseName;$('regenType').value=state.regen.type;updateRegenLevels();$('regenLevel').value=state.regen.level}
+
+  initInputs();renderReference();renderAll();
+})();
+</script>
+</body>
+</html>
