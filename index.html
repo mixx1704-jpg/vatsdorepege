@@ -528,7 +528,7 @@ state.body.forEach(r => {
   let cost=0;
 
   if(state.regen.type!=='none' && total>0){
-    cost=Math.floor((total/(state.baseHp+state.regen.level))*2);
+ cost=Math.floor(total/(state.baseHp+state.regen.level))*2;
 
     if(cost){
       spendRc(cost,'Regeneração passiva','passive');
