@@ -498,46 +498,63 @@
   function gainRc(v,reason){const before=state.rc;state.rc=clamp(state.rc+v,0,state.rcMax);log(`${reason}: +${state.rc-before} RC.`)}
 
 function doPassiveHeal(){
-  const p=passiveBreakdown();
+  const p = passiveBreakdown();
 
-  if(p.perRegion<=0){
+  if(p.perRegion <= 0){
     log('Cura passiva: nenhum efeito ativo.');
     return;
   }
 
-let total = 0;
+  let total = 0;
 
-state.body.forEach(r => {
+  state.body.forEach(r => {
 
-  // membro destruído não recebe cura normal
-  if (r.destroyed) return;
+    // membro destruído não recebe cura normal
+    if(r.destroyed) return;
 
-  const antes = r.current;
+    const antes = r.current;
 
-  r.current = Math.min(
-    r.max,
-    r.current + p.perRegion
-  );
+    r.current = Math.min(
+      r.max,
+      r.current + p.perRegion
+    );
 
-  // contabiliza SOMENTE o HP que realmente entrou
-  const curado = r.current - antes;
+    // contabiliza SOMENTE o HP que realmente entrou
+    const curado = r.current - antes;
 
-  total += curado;
-});
+    total += curado;
+  });
 
-  let cost=0;
+  let cost = 0;
 
-  if(state.regen.type!=='none' && total>0){
- cost=Math.floor(total/(state.baseHp+state.regen.level))*2;
+  if(state.regen.type !== 'none' && total > 0){
 
-    if(cost){
+    // acumula toda a cura realmente feita
+    state.regen.meter = (state.regen.meter || 0) + total;
+
+    // exemplo: 20 HP máximo + regen nível 4 = 24
+    const requisito = state.baseHp + state.regen.level;
+
+    // a cada 24 de cura acumulada = 2 RC
+    const vezes = Math.floor(state.regen.meter / requisito);
+
+    cost = vezes * 2;
+
+    // guarda a sobra para a próxima cura
+    state.regen.meter = state.regen.meter % requisito;
+
+    if(cost > 0){
       spendRc(cost,'Regeneração passiva','passive');
     }
   }
 
-  state.regen.lastCost=cost;
+  state.regen.lastCost = cost;
 
-  log(`Cura passiva: +${p.perRegion} por região; ${total} HP efetivos; custo ${cost} RC.`);
+  log(
+    `Cura passiva: +${p.perRegion} por região; ` +
+    `${total} HP efetivos; custo ${cost} RC; ` +
+    `${state.regen.meter} de cura acumulada.`
+  );
 
   renderAll();
 }
